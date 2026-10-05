@@ -93,9 +93,9 @@ async function obtenerFoliosEntidad(idEntidad, tamañoPagina = 50, logCallback =
       que: "",
       donde: { entidad: idEntidad.toString(), ubicacion: "" },
       items: tamañoPagina,
-      page: paginaActual,
+      page: paginaActual - 1,
       orden: "fecha_publicacion desc",
-      filter: {}
+      filter: { idMicrositio: "", tags: "" }
     };
 
     try {
