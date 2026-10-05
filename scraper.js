@@ -82,6 +82,19 @@ function formatearFechaTexto(fechaStr) {
   }
 }
 
+async function fetchConRetry(url, options, maxReintentos = 3) {
+  for (let intento = 1; intento <= maxReintentos; intento++) {
+    try {
+      const res = await fetch(url, options);
+      if (res.ok) return res;
+      if (intento === maxReintentos) throw new Error("Status " + res.status);
+    } catch (err) {
+      if (intento === maxReintentos) throw err;
+      await pausaHumana(1000 * intento, 2000 * intento);
+    }
+  }
+}
+
 async function obtenerFoliosEntidad(idEntidad, tamañoPagina = 50, logCallback = console.log) {
   logCallback("🔍 Consultando folios activos en el portal oficial para la entidad ID: " + idEntidad + "...");
   let folios = [];
@@ -99,13 +112,12 @@ async function obtenerFoliosEntidad(idEntidad, tamañoPagina = 50, logCallback =
     };
 
     try {
-      const res = await fetch("https://www.empleo.gob.mx/api/Login/busqueda/empleos", {
+      const res = await fetchConRetry("https://www.empleo.gob.mx/api/Login/busqueda/empleos", {
         method: "POST",
         headers: obtenerHeadersHumanos(),
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error("Status " + res.status);
       const data = await res.json();
 
       totalPaginas = data.totalPages || 1;
